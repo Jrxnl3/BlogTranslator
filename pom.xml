@@ -18,6 +18,14 @@
         <allure.version>2.17.3</allure.version>
     </properties>
 
+    <repositories>
+        <repository>
+            <id>AsposeJavaAPI</id>
+            <name>Aspose Java API</name>
+            <url>https://repository.aspose.com/repo/</url>
+        </repository>
+    </repositories>
+
     <dependencies>
         <dependency>
             <groupId>io.qameta.allure</groupId>
@@ -70,6 +78,11 @@
             <artifactId>pdf2dom</artifactId>
             <version>1.8</version>
         </dependency>
+        <dependency>
+            <groupId>com.aspose</groupId>
+            <artifactId>aspose-pdf</artifactId>
+            <version>21.7</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -101,6 +114,14 @@
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
                 <version>2.11.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
             </plugin>
         </plugins>
     </build>

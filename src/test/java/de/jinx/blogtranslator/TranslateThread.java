@@ -1,6 +1,7 @@
 package de.jinx.blogtranslator;
 
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.DownloadsFolder;
 import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.logevents.SelenideLogger;
@@ -27,6 +28,12 @@ import static com.codeborne.selenide.Selenide.*;
 
 public class TranslateThread implements Runnable {
 
+    String translateHTMLPath;
+
+    public TranslateThread(String translateHTMLPath) {
+        this.translateHTMLPath = translateHTMLPath;
+    }
+
     @BeforeAll
     public static void setUpAll() {
         Configuration.browserSize = "1280x720";
@@ -51,26 +58,15 @@ public class TranslateThread implements Runnable {
         try {
             WebDriverWait wait = new WebDriverWait(WebDriverRunner.getWebDriver(), Duration.ofSeconds(seconds));
             wait.until(ExpectedConditions.visibilityOf($(cssSelektor)));
+        } catch (Exception ignored) {
         }
-        catch (Exception ignored) {}
-    }
-    public void waitElementXPath(int seconds, String xpath) {
-        try {
-            WebDriverWait wait = new WebDriverWait(WebDriverRunner.getWebDriver(), Duration.ofSeconds(seconds));
-            wait.until(ExpectedConditions.visibilityOf($x(xpath)));
-        }
-        catch (Exception ignored) {}
     }
 
-    public void scroll(int pixelX, int pixelY) {
-        ((JavascriptExecutor) WebDriverRunner.getWebDriver()).executeScript("window.scrollBy(pixelX,pixelY)");
-    }
-
-    public void scrollToClick(String cssSelector) {
+    public void scrollToClick(String cssSelector, int pixelX, int pixelY) {
         WebElement element = WebDriverRunner.getWebDriver().findElement(By.cssSelector(cssSelector));
 
         do {
-            scroll(0, 100);
+            ((JavascriptExecutor) WebDriverRunner.getWebDriver()).executeScript("window.scrollBy("+pixelX+","+pixelY+")");
             try {
                 $(cssSelector).click();
                 break;
@@ -78,25 +74,16 @@ public class TranslateThread implements Runnable {
         }while (!element.isDisplayed() && !element.isEnabled());
     }
 
-    public void scrollToClickXPath(String xPath) {
-        WebElement element = WebDriverRunner.getWebDriver().findElement(By.xpath(xPath));
-
-        do {
-            scroll(0, 100);
-            try {
-                $x(xPath).click();
-                break;
-            }catch (Exception ignored) {}
-        }while (!element.isDisplayed() && element.isEnabled());
-    }
-
     public void startTranslation() throws IOException {
         open("https://www.deepl.com/translator/files");
+
+        //change selenium download folder
+        Configuration.downloadsFolder = "./";
 
         waitSite(2);
 
         //Drag blog_to_translate.html into the dropzone
-        $("#file-upload_input").uploadFile(new File("./blog_toTranslate.pdf"));
+        $("#file-upload_input").uploadFile(new File(translateHTMLPath));
 
         //Click Datenschutz
         waitElement(3,"button.button--WXFy4:nth-child(2)");
@@ -105,13 +92,19 @@ public class TranslateThread implements Runnable {
         waitSite(2);
 
         //Select German |  Function Not working
-        scrollToClickXPath("div.lmt__language_select_column:nth-child(1) > button:nth-child(4)");
+        scrollToClick("div.lmt__language_select_column:nth-child(1) > button:nth-child(4)", 0, 100);
 
         //Click on translate
-        scrollToClick(".smaller--uk4pu");
+        scrollToClick(".smaller--uk4pu", 0, 50);
+
+        waitSite(5);
 
         //Wait for Translating
-        waitElement(60,".docTrans_document__progress_image--29g9e > img:nth-child(1)");
+        while ($(".docTrans_document__progress_image--29g9e > img:nth-child(1)").isDisplayed()) {
+            waitSite(1);
+        }
+
+        waitSite(5);
     }
 
     @Override

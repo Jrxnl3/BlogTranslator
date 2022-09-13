@@ -25,7 +25,7 @@ public class MainPage {
         Element parentTextHolder = doc.getElementsByClass(xpath).first();
 
         //File Writer
-        File file = new File("./blog.html");
+        File file = new File("./blogNT.html");
         FileWriter fileWriter = new FileWriter(file);
         fileWriter.write("<body>\n");
 
