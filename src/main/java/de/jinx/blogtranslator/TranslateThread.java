@@ -1,37 +1,31 @@
 package de.jinx.blogtranslator;
 
 import com.codeborne.selenide.Configuration;
-import com.codeborne.selenide.DownloadsFolder;
-import com.codeborne.selenide.Driver;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
-import java.util.List;
 
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Selenide.*;
 
 public class TranslateThread implements Runnable {
 
-    String translateHTMLPath;
+    String fileToTranslate;
+    String outputFolderPath;
 
-    public TranslateThread(String translateHTMLPath) {
-        this.translateHTMLPath = translateHTMLPath;
+    public TranslateThread(String fileToTranslate, String outputFolderPath) {
+        this.fileToTranslate = fileToTranslate;
+        this.outputFolderPath = outputFolderPath;
     }
 
     @BeforeAll
@@ -78,12 +72,12 @@ public class TranslateThread implements Runnable {
         open("https://www.deepl.com/translator/files");
 
         //change selenium download folder
-        Configuration.downloadsFolder = "./";
+        Configuration.downloadsFolder = outputFolderPath;
 
         waitSite(2);
 
         //Drag blog_to_translate.html into the dropzone
-        $("#file-upload_input").uploadFile(new File(translateHTMLPath));
+        $("#file-upload_input").uploadFile(new File(fileToTranslate));
 
         //Click Datenschutz
         waitElement(3,"button.button--WXFy4:nth-child(2)");
@@ -91,7 +85,7 @@ public class TranslateThread implements Runnable {
 
         waitSite(2);
 
-        //Select German |  Function Not working
+        //Select German
         scrollToClick("div.lmt__language_select_column:nth-child(1) > button:nth-child(4)", 0, 100);
 
         //Click on translate
@@ -99,12 +93,13 @@ public class TranslateThread implements Runnable {
 
         waitSite(5);
 
-        //Wait for Translating
+        //Wait for Translating to be completed
         while ($(".docTrans_document__progress_image--29g9e > img:nth-child(1)").isDisplayed()) {
             waitSite(1);
         }
 
         waitSite(5);
+
     }
 
     @Override
